@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config1" doc:name="HTTP Listener config" doc:id="0e7217c2-709a-46ce-8f2e-dc6893ce22cf" basePath="/insert">
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="f194b692-2c50-4a0b-b491-4edd759169ff" >
+		<db:oracle-connection host="localhost" user="scott" password="tiger" instance="orcl" />
+	</db:config>
+	<flow name="db_projectFlow1" doc:id="25894980-ccb2-40dd-b99b-9a34eda5792d" >
+		<http:listener doc:name="Listener" doc:id="2fff30f8-0c0f-4144-b88d-a67f2f75cbf1" config-ref="HTTP_Listener_config1" path="/insert"/>
+		<db:insert doc:name="Insert" doc:id="1c2857d6-2dfd-46b0-a489-2e73f1715f41" config-ref="Database_Config">
+			<db:sql ><![CDATA[insert into emp (empno,ename,deptno) vaues(:empid,:ename:,dep)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+  "empid": payload.empid,
+  "ename": payload.ename,
+  "dep": payload.dep
+  }]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="4a83aac7-0d7a-4423-a02c-e9c898d403f3" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"status" : "inserted details"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="db_projectFlow" doc:id="b0700222-d094-47fb-a817-b1995486b8eb" >
+		<http:listener doc:name="Listener" doc:id="a1462db4-e219-4549-83a7-9be64eaa8827" config-ref="HTTP_Listener_config1" path="/dboperations"/>
+		<logger level="INFO" doc:name="Logger" doc:id="2b64e0e9-647d-45e4-973c-de4b5dfefc75" message="processing"/>
+		<db:select doc:id="8584a968-cc4e-4fe0-965b-ca2d75975eb4" config-ref="Database_Config">
+			<db:sql ><![CDATA[select empno,ename from emp]]></db:sql>
+			<db:input-parameters ><![CDATA[#[deptno : attributes.queryParams.deptno]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="9b7b6262-449b-4e47-bd46-468731108563" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+	 payload
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
