@@ -1,0 +1,6 @@
+{
+  "eid" : payload.eid,
+  "ename" : payload.ename,
+  "sal" : payload.sal,
+  "job" : payload.job
+}

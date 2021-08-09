@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="fa343b11-8769-44df-b005-0b38917af3dc" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<file:config name="File_Config" doc:name="File Config" doc:id="920e87f0-7a85-4c11-af26-1c6a9ed73e3a" />
+	<flow name="jasoncsvFlow" doc:id="11fbc058-d432-46b6-9f40-7b096b5a7e22" >
+		<http:listener doc:name="Listener" doc:id="efde15a3-fa1d-4e69-bbff-4760a72951e7" config-ref="HTTP_Listener_config" path="/json"/>
+		<logger level="INFO" doc:name="Logger" doc:id="6549ecc4-68d6-42a7-9ff7-7cb2ce4146c2" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="8ce29ff3-75f0-4aab-8297-5a88635da2e4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+---
+[{
+	eid: payload.eid,
+	ename: payload.ename,
+	job: (payload.sal default "") ++ payload.job,
+	sal: (payload.job as Numberdefault 0) + payload.sal as Number
+}]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<file:write doc:id="dbe0e75b-b67b-468f-a9c0-90c2f022e32b" config-ref="File_Config" path="C:\Users\welcome\OneDrive\Desktop\file\inbound\json.txt"/>
+	</flow>
+</mule>

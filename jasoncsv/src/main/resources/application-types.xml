@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="jsontext" format="json">
+      <types:shape format="weave" example="examples/new 2.txt"><![CDATA[%dw 2.0
+
+type jsontext = {|
+  eid: String, 
+  ename: String, 
+  sal: String, 
+  job: String
+|} {"example": "{\\\"eid\\\":\\\"payload.eid\\\",\\\"ename\\\":\\\"payload.ename\\\",\\\"sal\\\":\\\"payload.sal\\\",\\\"job\\\":\\\"payload.job\\\"}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="csvtext" format="csv">
+      <types:shape format="weave" example="examples/new 2-1.txt"><![CDATA[%dw 2.0
+
+type csvtext = Array<{| eid: String |}> {"isQuotedString": "false",
+"header": "true",
+"headerLineNumber": "0"}
+
+]]></types:shape>
+      <types:properties>
+        <types:property name="headerLineNumber" value="0"/>
+        <types:property name="header" value="true"/>
+        <types:property name="isQuotedString" value="false"/>
+      </types:properties>
+    </types:type>
+    <types:type name="csv" format="csv">
+      <types:shape format="weave" example="examples/new 2-2.txt"><![CDATA[%dw 2.0
+
+type csv = Array<{|  eid: String,   ename: String,   job: String,   sal: Number|}> {"isQuotedString": "false",
+"header": "true",
+"headerLineNumber": "0"}
+
+]]></types:shape>
+      <types:properties>
+        <types:property name="headerLineNumber" value="0"/>
+        <types:property name="header" value="true"/>
+        <types:property name="isQuotedString" value="false"/>
+      </types:properties>
+    </types:type>
+    <types:type name="dffds" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: string]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#8ce29ff3-75f0-4aab-8297-5a88635da2e4">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="jsontext"/>
+        </types:message>
+      </types:input-event>
+      <types:output-event>
+        <types:message>
+          <types:payload type="csv"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

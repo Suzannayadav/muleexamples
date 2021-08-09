@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="76410a2c-8ea1-45ba-906c-8cee87a249dd" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="subelementFlow" doc:id="19664efb-0c66-4d1b-9337-b4e2b076f3e0" >
+		<http:listener doc:name="Listener" doc:id="c800ae42-5c8a-4d03-90b3-f06591323c5d" config-ref="HTTP_Listener_config" path="/order"/>
+		<logger level="INFO" doc:name="Logger" doc:id="67cb645a-64e5-43ad-9d47-f0bca35e8d54" message="processing"/>
+		<choice doc:name="Choice" doc:id="1e7c6f7e-e876-4fc5-8dab-3187db3ea1d0" >
+			<when expression="#[payload.items[0].price + payload.items[1].price + payload.items[2].price &lt;1200]">
+				<logger level="INFO" doc:name="Logger" doc:id="80fa715e-bfc8-4e23-80dc-887f0f723d78" />
+				<ee:transform doc:name="Transform Message" doc:id="1af887f0-1888-47f5-8fd6-16a047f037c7" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"custid" : payload.custid,
+	"custname" : payload.custname,
+	"totalprice" : ((payload.items[0].price +  payload.items[1].price +  payload.items[2].price)
+		-((payload.items[0].price +  payload.items[1].price  + payload.items[2].price )
+		* (5 / 100) ))
+ }]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression="#[((payload.items[0].price + payload.items[1].price + payload.items[2].price) &gt;= 1200 ) and&#10;((payload.items[0].price + payload.items[1].price + payload.items[2].price)  &lt; 5000)]">
+				<logger level="INFO" doc:name="Logger" doc:id="22364627-2272-4613-912f-0ecf333dcc6e" message="payload"/>
+				<ee:transform doc:name="Transform Message" doc:id="39e1c105-20a2-45dd-8dbd-6b3c89f27a16" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"custid" : payload.custid,
+	"custname" : payload.custname,
+	"totalprice" : ((payload.items[0].price +  payload.items[1].price +  payload.items[2].price)
+		- ((payload.items[0].price +  payload.items[1].price  + payload.items[2].price )
+		*(10 / 100)    ))
+ }]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="logger" doc:id="1dd6bb42-dd8e-40fa-a298-d9e904114fcd" message="#[payload]"/>
+				<ee:transform doc:name="Transform Message" doc:id="c5f22353-ad9a-4fe0-a6d6-05c8ff16336c" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+---
+{
+	"custid" : payload.custid,
+	"custname" : payload.custname,
+	"totalprice" : ((payload.items[0].price +  payload.items[1].price +  payload.items[2].price)
+		- ((payload.items[0].price +  payload.items[1].price  + payload.items[2].price )
+		*(10 / 100)    ))
+ }
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>
