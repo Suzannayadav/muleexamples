@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="e831e070-0f95-4614-8231-b6e7dec290e9" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="8b13a68a-39c1-4755-8743-0aa65d6e304b" >
+		<db:oracle-connection host="localhost" user="scott" password="tiger" instance="orcl" />
+	</db:config>
+	<flow name="db.projectFlow" doc:id="e1d9662a-3326-4abb-a963-fc8a873b1c51" >
+		<http:listener doc:name="Listener" doc:id="02d8e8a4-661b-4279-be09-120974a63220" config-ref="HTTP_Listener_config" path="insert"/>
+		<logger level="INFO" doc:name="Logger" doc:id="0bba09f6-fa84-4505-927b-acedef5ba230" message="start the processing"/>
+		<db:insert doc:name="Insert" doc:id="f676482e-4d58-4961-9ad2-8fc21372c616" config-ref="Database_Config">
+			<db:sql ><![CDATA[Insert into emp (Ename,empno,MGR) values (:ename,:eid,:mgr)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	
+  "ename" : payload.ename,
+  "eid" : payload.eid,
+  "mgr" : payload.mgr
+  
+ }]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="ddd5dc6b-1061-4c5d-b69b-8bf39bd2b72a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"status" : "hello employee details are inserted"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
